@@ -1,11 +1,29 @@
-# Features
+# MVP Features
 
-## Core Features
+## Account
+- No phone number required
+- Local profile (name + avatar)
 
-A comprehensive list of features in ShinobiLink.
+## Messaging
+- One-to-one chat
+- Message status (Sending, Sent, Delivered)
+- End-to-end encryption
 
-### Feature 1
-Description here.
+## Connectivity
+- Bluetooth Low Energy (BLE)
+- Automatic peer discovery
+- Offline-first operation
 
-### Feature 2
-Description here.
+## Privacy
+- No ads
+- No tracking
+- Local data storage
+- User controls their own data
+
+## Nice to Have (Post-MVP)
+- Group chats
+- File sharing
+- Voice messages
+- Wi-Fi Direct
+- Internet relay
+- Multi-device sync
