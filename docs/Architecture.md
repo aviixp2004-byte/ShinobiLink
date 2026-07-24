@@ -1,11 +1,36 @@
-# Architecture
+# ShinobiLink Architecture
 
-## System Architecture
+## Client
 
-This document describes the overall architecture of ShinobiLink.
+- Flutter App
+- Local Database
+- Bluetooth Low Energy (BLE)
+- Encryption Engine
 
-## Components
+## Communication Layer
 
-- Component 1
-- Component 2
-- Component 3
+- BLE Mesh
+- Peer Discovery
+- Message Routing
+- Reliable Delivery
+
+## Security Layer
+
+- End-to-End Encryption
+- Local Key Storage
+- Message Authentication
+
+## Future Components
+
+- Wi-Fi Direct
+- Internet Relay
+- Push Notifications (Optional)
+- Multi-Device Sync
+
+## Design Principles
+
+- Offline First
+- Privacy First
+- Modular
+- Cross Platform
+- Open Source
