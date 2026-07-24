@@ -1,14 +1,42 @@
-# User Interface
+# ShinobiLink UI Specification
 
-## UI Design
+## Design Philosophy
 
-Documentation for the user interface design of ShinobiLink.
+- Minimal
+- Fast
+- Clean
+- Privacy-focused
+- One-handed use
 
-### Design System
-Details here.
+## Color Palette
 
-### Components
-List of UI components here.
+Primary: #0F172A
+Accent: #2563EB
+Success: #22C55E
+Warning: #F59E0B
+Error: #EF4444
+Background: #FFFFFF
+Dark Background: #020617
 
-### Wireframes
-Wireframe links and descriptions here.
+## Typography
+
+- Headings: Bold
+- Body: Regular
+- Buttons: Medium
+
+## Screens
+
+1. Splash
+2. Create Profile
+3. Nearby Devices
+4. Chats
+5. Chat Screen
+6. Settings
+
+## Navigation
+
+Bottom Navigation
+
+- Chats
+- Nearby
+- Settings
