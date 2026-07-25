@@ -5,8 +5,8 @@
 import FlutterMacOS
 import Foundation
 
-import isar_flutter_libs
+import flutter_blue_plus_darwin
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  IsarFlutterLibsPlugin.register(with: registry.registrar(forPlugin: "IsarFlutterLibsPlugin"))
+  FlutterBluePlusPlugin.register(with: registry.registrar(forPlugin: "FlutterBluePlusPlugin"))
 }

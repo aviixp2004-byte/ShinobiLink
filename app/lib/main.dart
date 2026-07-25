@@ -2,27 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/services/app_router.dart';
+import 'core/services/storage_service.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.init();
+
   runApp(
     const ProviderScope(
-      child: ShinobiLinkApp(),
+      child: MyApp(),
     ),
   );
 }
 
-class ShinobiLinkApp extends StatelessWidget {
-  const ShinobiLinkApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
-      ),
       routerConfig: appRouter,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

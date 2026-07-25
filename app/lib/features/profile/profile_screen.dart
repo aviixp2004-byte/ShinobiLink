@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../core/services/storage_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -8,60 +11,37 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final TextEditingController _nameController = TextEditingController();
+  final _controller = TextEditingController();
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
+  Future<void> _continue() async {
+    final name = _controller.text.trim();
+
+    if (name.isEmpty) return;
+
+    await StorageService.box.put('displayName', name);
+
+    if (!mounted) return;
+
+    context.go('/');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Profile'),
-      ),
+      appBar: AppBar(title: const Text('Create Profile')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Welcome to ShinobiLink',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Choose a display name for your device.',
-            ),
-            const SizedBox(height: 24),
             TextField(
-              controller: _nameController,
+              controller: _controller,
               decoration: const InputDecoration(
                 labelText: 'Display Name',
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                final name = _nameController.text.trim();
-
-                if (name.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a display name'),
-                    ),
-                  );
-                  return;
-                }
-
-                debugPrint('Profile Name: $name');
-              },
+            FilledButton(
+              onPressed: _continue,
               child: const Text('Continue'),
             ),
           ],
