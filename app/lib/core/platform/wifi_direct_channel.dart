@@ -14,7 +14,10 @@ class WifiDirectChannel {
   }
 
   Future<bool> discoverPeers() async {
-    return await _methodChannel.invokeMethod<bool>('discoverPeers') ?? false;
+    return await _methodChannel.invokeMethod<bool>(
+          'discoverPeers',
+        ) ??
+        false;
   }
 
   Future<bool> connect(String deviceAddress) async {
@@ -32,13 +35,24 @@ class WifiDirectChannel {
   }
 
   Stream<List<WifiPeer>> peers() {
-    return _eventChannel.receiveBroadcastStream().map((event) {
-      final list = (event as List)
+    return _eventChannel
+        .receiveBroadcastStream()
+        .where((event) => event is List)
+        .map((event) {
+      return (event as List)
           .cast<Map<dynamic, dynamic>>()
           .map(WifiPeer.fromMap)
           .toList();
-
-      return list;
     });
+  }
+
+  Stream<Map<dynamic, dynamic>> connectionEvents() {
+    return _eventChannel
+        .receiveBroadcastStream()
+        .where((event) {
+          return event is Map &&
+              event['type'] == 'connection';
+        })
+        .cast<Map<dynamic, dynamic>>();
   }
 }

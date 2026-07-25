@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/bluetooth/ble_service.dart';
 import '../../core/wifi_direct/wifi_direct_repository.dart';
 import '../../core/wifi_direct/wifi_direct_service.dart';
+import '../../models/wifi_peer.dart';
 
 class NearbyDevicesScreen extends StatefulWidget {
   const NearbyDevicesScreen({super.key});
@@ -23,6 +24,8 @@ class _NearbyDevicesScreenState
         WifiDirectService(),
       );
 
+  List<WifiPeer> _wifiPeers = [];
+
   @override
   void initState() {
     super.initState();
@@ -32,6 +35,12 @@ class _NearbyDevicesScreenState
         _wifiRepository.discover();
 
         _wifiRepository.peers().listen((peers) {
+          if (!mounted) return;
+
+          setState(() {
+            _wifiPeers = peers;
+          });
+
           for (final peer in peers) {
             debugPrint(
               'Wi-Fi Direct: ${peer.name} (${peer.address})',
@@ -59,46 +68,99 @@ class _NearbyDevicesScreenState
             );
           }
 
-          return ListView.builder(
-            itemCount: devices.length,
-            itemBuilder: (context, index) {
-              final device = devices[index];
+          return ListView(
+            children: [
+              if (_wifiPeers.isNotEmpty) ...[
+                const ListTile(
+                  title: Text(
+                    'Wi-Fi Direct',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                ..._wifiPeers.map(
+                  (peer) => ListTile(
+                    leading: const Icon(Icons.wifi),
+                    title: Text(
+                      peer.name.isEmpty ? 'Unknown Device' : peer.name,
+                    ),
+                    subtitle: Text(peer.address),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      final connection =
+                          await _wifiRepository.connect(peer.address);
 
-              return ListTile(
-                leading: const Icon(Icons.bluetooth),
+                      if (connection == null) {
+                        if (!context.mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Wi-Fi Direct connection failed',
+                            ),
+                          ),
+                        );
+
+                        return;
+                      }
+
+                      if (!context.mounted) return;
+
+                      context.push(
+                        '/chat',
+                        extra: peer.name.isEmpty
+                            ? 'Wi-Fi Peer'
+                            : peer.name,
+                      );
+                    },
+                  ),
+                ),
+                const Divider(),
+              ],
+
+              const ListTile(
                 title: Text(
-                  device.device.platformName.isEmpty
-                      ? 'Unknown Device'
-                      : device.device.platformName,
+                  'Bluetooth',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text(
-                  device.device.remoteId.toString(),
+              ),
+
+              ...devices.map(
+                (device) => ListTile(
+                  leading: const Icon(Icons.bluetooth),
+                  title: Text(
+                    device.device.platformName.isEmpty
+                        ? 'Unknown Device'
+                        : device.device.platformName,
+                  ),
+                  subtitle: Text(
+                    device.device.remoteId.toString(),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    try {
+                      await _bleService.connect(device.device);
+
+                      if (!context.mounted) return;
+
+                      context.push(
+                        '/chat',
+                        extra: device.device.platformName.isEmpty
+                            ? 'Unknown Device'
+                            : device.device.platformName,
+                      );
+                    } catch (_) {
+                      if (!context.mounted) return;
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Connection failed'),
+                        ),
+                      );
+                    }
+                  },
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  try {
-                    await _bleService.connect(device.device);
-
-                    if (!context.mounted) return;
-
-                    context.push(
-                      '/chat',
-                      extra: device.device.platformName.isEmpty
-                          ? 'Unknown Device'
-                          : device.device.platformName,
-                    );
-                  } catch (_) {
-                    if (!context.mounted) return;
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Connection failed'),
-                      ),
-                    );
-                  }
-                },
-              );
-            },
+              ),
+            ],
           );
         },
       ),
