@@ -1,0 +1,4 @@
+enum SocketMode {
+  server,
+  client,
+}

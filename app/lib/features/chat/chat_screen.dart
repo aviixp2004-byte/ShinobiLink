@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/message_model.dart';
-import '../../repositories/chat_repository.dart';
+
+import '../../core/chat/chat_controller.dart';
 import '../../core/chat/chat_engine.dart';
 import '../../core/network/network_manager.dart';
+import '../../models/message_model.dart';
+import '../../repositories/chat_repository.dart';
 
 class ChatScreen extends StatefulWidget {
   final String deviceName;
@@ -17,43 +19,46 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
 
   final ChatRepository _repository = ChatRepository(
-  networkManager: NetworkManager(),
-  chatEngine: ChatEngine(),
-);
+    networkManager: NetworkManager(),
+    chatEngine: ChatEngine(),
+  );
+
+  late final ChatController _chatController =
+      ChatController(_repository);
 
   @override
   void dispose() {
-    _controller.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
   Future<void> _send() async {
-      final text = _controller.text.trim();
+    final text = _textController.text.trim();
 
-      if (text.isEmpty) return;
+    if (text.isEmpty) return;
 
-      final message = MessageModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        senderId: "me",
-        receiverId: "peer",
-        text: text,
-        timestamp: DateTime.now(),
-        delivered: false,
-      );
+    final message = MessageModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      senderId: "me",
+      receiverId: "peer",
+      text: text,
+      timestamp: DateTime.now(),
+      delivered: false,
+    );
 
-      await _repository.send(message);
+    await _chatController.send(message);
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      setState(() {});
+    setState(() {});
 
-      _controller.clear();
-    }
+    _textController.clear();
+  }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -63,10 +68,10 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: _repository.messages.length,
+              itemCount: _chatController.messages.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(_repository.messages[index].text),
+                  title: Text(_chatController.messages[index].text),
                 );
               },
             ),
@@ -78,7 +83,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: _controller,
+                      controller: _textController,
                       decoration: const InputDecoration(
                         hintText: 'Type a message...',
                         border: OutlineInputBorder(),

@@ -3,11 +3,44 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/bluetooth/ble_service.dart';
+import '../../core/wifi_direct/wifi_direct_repository.dart';
+import '../../core/wifi_direct/wifi_direct_service.dart';
 
-class NearbyDevicesScreen extends StatelessWidget {
-  NearbyDevicesScreen({super.key});
+class NearbyDevicesScreen extends StatefulWidget {
+  const NearbyDevicesScreen({super.key});
 
+  @override
+  State<NearbyDevicesScreen> createState() =>
+      _NearbyDevicesScreenState();
+}
+
+class _NearbyDevicesScreenState
+    extends State<NearbyDevicesScreen> {
   final BleService _bleService = BleService();
+
+  final WifiDirectRepository _wifiRepository =
+      WifiDirectRepository(
+        WifiDirectService(),
+      );
+
+  @override
+  void initState() {
+    super.initState();
+
+    _wifiRepository.initialize().then((ok) {
+      if (ok) {
+        _wifiRepository.discover();
+
+        _wifiRepository.peers().listen((peers) {
+          for (final peer in peers) {
+            debugPrint(
+              'Wi-Fi Direct: ${peer.name} (${peer.address})',
+            );
+          }
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +71,9 @@ class NearbyDevicesScreen extends StatelessWidget {
                       ? 'Unknown Device'
                       : device.device.platformName,
                 ),
-                subtitle: Text(device.device.remoteId.toString()),
+                subtitle: Text(
+                  device.device.remoteId.toString(),
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () async {
                   try {

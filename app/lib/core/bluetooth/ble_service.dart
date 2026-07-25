@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BleService {
@@ -28,5 +30,35 @@ class BleService {
 
   Future<void> disconnect(BluetoothDevice device) async {
     await device.disconnect();
+  }
+
+  Future<List<BluetoothService>> discoverServices(
+    BluetoothDevice device,
+  ) async {
+    return device.discoverServices();
+  }
+
+  Future<void> writeCharacteristic(
+    BluetoothCharacteristic characteristic,
+    String data,
+  ) async {
+    await characteristic.write(
+      utf8.encode(data),
+      withoutResponse: false,
+    );
+  }
+
+  Future<String> readCharacteristic(
+    BluetoothCharacteristic characteristic,
+  ) async {
+    final bytes = await characteristic.read();
+    return utf8.decode(bytes);
+  }
+
+  Stream<List<int>> subscribe(
+    BluetoothCharacteristic characteristic,
+  ) async* {
+    await characteristic.setNotifyValue(true);
+    yield* characteristic.lastValueStream;
   }
 }

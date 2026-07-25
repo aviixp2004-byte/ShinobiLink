@@ -5,6 +5,7 @@ import '../../features/home/home_screen.dart';
 import '../../features/nearby/nearby_devices_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../features/socket_test/socket_test_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -25,6 +26,12 @@ final GoRouter appRouter = GoRouter(
       path: '/nearby',
       builder: (context, state) => NearbyDevicesScreen(),
     ),
+
+    GoRoute(
+      path: '/socket-test',
+      builder: (context, state) => const SocketTestScreen(),
+    ),
+
     GoRoute(
       path: '/chat',
       builder: (context, state) {

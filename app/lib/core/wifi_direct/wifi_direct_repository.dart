@@ -1,13 +1,30 @@
+import '../../core/platform/wifi_direct_channel.dart';
+import '../../models/wifi_peer.dart';
 import 'wifi_direct_service.dart';
 
 class WifiDirectRepository {
-  final WifiDirectService service;
-
   WifiDirectRepository(this.service);
 
-  Future<void> discover() => service.startDiscovery();
+  final WifiDirectService service;
+  final WifiDirectChannel _channel = WifiDirectChannel();
 
-  Future<void> connect(String id) => service.connect(id);
+  Stream<List<WifiPeer>> peers() {
+    return _channel.peers();
+  }
 
-  Future<void> disconnect() => service.disconnect();
+  Future<bool> initialize() {
+    return _channel.initialize();
+  }
+
+  Future<bool> discover() {
+    return _channel.discoverPeers();
+  }
+
+  Future<bool> connect(String address) {
+    return _channel.connect(address);
+  }
+
+  Future<void> disconnect() {
+    return _channel.disconnect();
+  }
 }
