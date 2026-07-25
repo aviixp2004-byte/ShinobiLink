@@ -52,6 +52,14 @@ class SocketTransport implements Transport {
     );
   }
 
+  Future<void> sendRaw(String data) async {
+    await _service.send(data);
+  }
+
+  Stream<String> receiveRaw() {
+    return _service.messages;
+  }
+
   @override
   Stream<PacketModel> receive() {
     return _service.messages.map(

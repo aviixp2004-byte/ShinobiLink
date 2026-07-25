@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../../core/chat/chat_controller.dart';
+import '../../core/connection/chat_connection.dart';
 import '../../core/chat/chat_engine.dart';
 import '../../core/network/network_manager.dart';
 import '../../models/message_model.dart';
 import '../../repositories/chat_repository.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String deviceName;
+  final ChatConnection connection;
 
   const ChatScreen({
     super.key,
-    required this.deviceName,
+    required this.connection,
   });
 
   @override
@@ -30,8 +31,17 @@ class _ChatScreenState extends State<ChatScreen> {
       ChatController(_repository);
 
   @override
+  void initState() {
+    super.initState();
+
+    _chatController.start();
+  }
+
+  @override
   void dispose() {
     _textController.dispose();
+    _chatController.stop();
+    _chatController.dispose();
     super.dispose();
   }
 
@@ -62,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.deviceName),
+        title: Text(widget.connection.deviceName),
       ),
       body: Column(
         children: [

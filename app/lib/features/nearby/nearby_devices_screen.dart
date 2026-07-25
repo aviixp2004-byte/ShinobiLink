@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/connection/chat_connection.dart';
 
 import '../../core/bluetooth/ble_service.dart';
+import '../../core/connection/connection_service.dart';
+import '../../core/connection/connection_state.dart' as connection_state;
 import '../../core/wifi_direct/wifi_direct_repository.dart';
 import '../../core/wifi_direct/wifi_direct_service.dart';
 import '../../models/wifi_peer.dart';
@@ -24,7 +27,12 @@ class _NearbyDevicesScreenState
         WifiDirectService(),
       );
 
+  final ConnectionService _connectionService =
+      ConnectionService.instance;
+
   List<WifiPeer> _wifiPeers = [];
+
+  bool _connecting = false;
 
   @override
   void initState() {
@@ -85,33 +93,61 @@ class _NearbyDevicesScreenState
                     ),
                     subtitle: Text(peer.address),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () async {
-                      final connection =
-                          await _wifiRepository.connect(peer.address);
+                    onTap: _connecting
+                        ? null
+                        : () async {
+                            setState(() {
+                              _connecting = true;
+                            });
 
-                      if (connection == null) {
-                        if (!context.mounted) return;
+                            try {
+                              final connection =
+                                  await _wifiRepository.connect(
+                                peer.address,
+                              );
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Wi-Fi Direct connection failed',
-                            ),
-                          ),
-                        );
+                              if (connection == null) {
+                                throw Exception(
+                                  'Wi-Fi Direct connection failed',
+                                );
+                              }
 
-                        return;
-                      }
+                              await _connectionService.connectWifi(
+                                connection,
+                              );
 
-                      if (!context.mounted) return;
+                              if (!context.mounted) return;
 
-                      context.push(
-                        '/chat',
-                        extra: peer.name.isEmpty
-                            ? 'Wi-Fi Peer'
-                            : peer.name,
-                      );
-                    },
+                              context.push(
+                                '/chat',
+                                extra: ChatConnection(
+                                  deviceName: peer.name.isEmpty
+                                      ? 'Wi-Fi Peer'
+                                      : peer.name,
+                                  connected:
+                                      _connectionService.state ==
+                                          connection_state.ConnectionState.connected,
+                                ),
+                              );
+                            } catch (_) {
+                              if (!context.mounted) return;
+
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Connection failed',
+                                  ),
+                                ),
+                              );
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _connecting = false;
+                                });
+                              }
+                            }
+                          },
                   ),
                 ),
                 const Divider(),

@@ -54,6 +54,14 @@ class NetworkManager {
     await _transport.start();
   }
 
+  Future<void> sendRaw(String data) async {
+    await _transport.sendRaw(data);
+  }
+
+  Stream<String> receiveRaw() {
+    return _transport.receiveRaw();
+  }
+
   Future<void> send(PacketModel packet) async {
     await _transport.send(packet);
   }
