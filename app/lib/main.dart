@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'features/splash/splash_screen.dart';
 
 void main() {
   runApp(
@@ -21,17 +22,7 @@ class ShinobiLinkApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'ShinobiLink',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
+      home: const SplashScreen(),
     );
   }
 }
