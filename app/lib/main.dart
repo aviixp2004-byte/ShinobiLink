@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'features/splash/splash_screen.dart';
+import 'core/services/app_router.dart';
 
 void main() {
   runApp(
@@ -15,14 +15,13 @@ class ShinobiLinkApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ShinobiLink',
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
       ),
-      home: const SplashScreen(),
+      routerConfig: appRouter,
     );
   }
 }
