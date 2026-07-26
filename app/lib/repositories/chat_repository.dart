@@ -26,6 +26,9 @@ class ChatRepository {
   Timer? _heartbeatTimer;
   bool _connectionHealthy = true;
 
+  bool _peerTyping = false;
+  Timer? _typingTimeout;
+
   final StreamController<List<MessageModel>> _messagesController =
       StreamController<List<MessageModel>>.broadcast();
 
@@ -39,6 +42,8 @@ class ChatRepository {
   DateTime? get lastPacketAt => _lastPacketAt;
 
   bool get connectionHealthy => _connectionHealthy;
+
+  bool get peerTyping => _peerTyping;
 
 
 
@@ -57,6 +62,22 @@ class ChatRepository {
 
   void _notify() {
     _messagesController.add(List.unmodifiable(_messages));
+  }
+
+
+
+  void _setPeerTyping() {
+    _peerTyping = true;
+    _typingTimeout?.cancel();
+
+    _typingTimeout = Timer(
+      const Duration(seconds: 2),
+      () {
+        _peerTyping = false;
+      },
+    );
+
+    _notify();
   }
 
   Future<void> startListening() async {
@@ -81,6 +102,11 @@ class ChatRepository {
     }
 
     if (packet.type == PacketType.pong) {
+      return;
+    }
+
+    if (packet.type == PacketType.typing) {
+      _setPeerTyping();
       return;
     }
 
@@ -170,6 +196,19 @@ class ChatRepository {
   }
 
 
+
+  Future<void> sendTyping({
+    required String from,
+    required String to,
+  }) async {
+    final packet = chatEngine.createTyping(
+      from: from,
+      to: to,
+    );
+
+    await networkManager.send(packet);
+  }
+
   Future<void> send(MessageModel message) async {
     _messages.add(message);
     await _storage.saveMessage(message);
@@ -220,6 +259,14 @@ class ChatRepository {
         .toList();
   }
 
+
+
+  Future<void> deleteMessage(String id) async {
+    _messages.removeWhere((m) => m.id == id);
+
+    _notify();
+  }
+
   void clear() {
     _messages.clear();
     _notify();
@@ -227,6 +274,7 @@ class ChatRepository {
 
   Future<void> dispose() async {
     _heartbeatTimer?.cancel();
+    _typingTimeout?.cancel();
     await stopListening();
     await _messagesController.close();
   }

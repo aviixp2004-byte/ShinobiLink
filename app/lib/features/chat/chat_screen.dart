@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/chat/chat_controller.dart';
@@ -25,6 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   Timer? _typingTimer;
+  Timer? _typingRefreshTimer;
 
   final ChatRepository _repository = ChatRepository(
     networkManager: NetworkManager(),
@@ -39,10 +41,17 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
 
     _chatController.start();
+
+    _typingRefreshTimer =
+        Timer.periodic(const Duration(milliseconds: 300), (_) {
+      if (!mounted) return;
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _typingRefreshTimer?.cancel();
     _textController.dispose();
     _chatController.stop();
     _chatController.dispose();
@@ -104,6 +113,46 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+
+  Future<void> _copyMessage(String message) async {
+    await Clipboard.setData(ClipboardData(text: message));
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Message copied'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
+
+
+  void _startReply(MessageModel message) {
+    _chatController.startReply(message);
+
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+
+
+  String _findReplyText(MessageModel message) {
+    if (message.replyTo == null) {
+      return "";
+    }
+
+    for (final m in _chatController.messages) {
+      if (m.id == message.replyTo) {
+        return m.text;
+      }
+    }
+
+    return "Original message unavailable";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,7 +190,32 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 final isMe = message.senderId == "me";
 
-                return Align(
+                return GestureDetector(
+                  onLongPress: () async {
+                    final action = await showMenu<String>(
+                      context: context,
+                      position: const RelativeRect.fromLTRB(100, 300, 100, 300),
+                      items: const [
+                        PopupMenuItem(
+                          value: 'reply',
+                          child: Text('Reply'),
+                        ),
+                        PopupMenuItem(
+                          value: 'copy',
+                          child: Text('Copy'),
+                        ),
+                      ],
+                    );
+
+                    if (!mounted || action == null) return;
+
+                    if (action == 'reply') {
+                      _startReply(message);
+                    } else if (action == 'copy') {
+                      _copyMessage(message.text);
+                    }
+                  },
+                  child: Align(
                   alignment: isMe
                       ? Alignment.centerRight
                       : Alignment.centerLeft,
@@ -164,6 +238,21 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
+                        if (message.replyTo != null)
+                          Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black12,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _findReplyText(message),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(message.text),
@@ -190,12 +279,56 @@ class _ChatScreenState extends State<ChatScreen> {
                       ],
                     ),
                   ),
-                );
+                ));
+
                   },
                 );
               },
             ),
           ),
+          if (_repository.peerTyping)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Peer is typing...',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ),
+
+          if (_chatController.replyingTo != null)
+            Container(
+              margin: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _chatController.replyingTo!.text,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _chatController.cancelReply();
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            ),
+
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(8),

@@ -11,6 +11,7 @@ class MessageModel {
   final String receiverId;
   final String text;
   final DateTime timestamp;
+  final String? replyTo;
   final MessageStatus status;
 
   const MessageModel({
@@ -19,6 +20,7 @@ class MessageModel {
     required this.receiverId,
     required this.text,
     required this.timestamp,
+    this.replyTo,
     required this.status,
   });
 
