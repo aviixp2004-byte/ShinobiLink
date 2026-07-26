@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../models/message_model.dart';
 import '../../repositories/chat_repository.dart';
 
@@ -89,16 +91,56 @@ class ChatController {
   }
 
 
+
+  Future<void> sendFile({
+    required String filePath,
+    required String receiverId,
+  }) async {
+    final file = File(filePath);
+
+    final fileName = file.uri.pathSegments.isNotEmpty
+        ? file.uri.pathSegments.last
+        : 'file';
+
+    final fileSize = await file.length();
+
+    final fileMessage = MessageModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      senderId: "me",
+      receiverId: receiverId,
+      text: filePath,
+      type: MessageType.file,
+      fileName: fileName,
+      fileSize: fileSize,
+      mimeType: 'application/octet-stream',
+      timestamp: DateTime.now(),
+      status: MessageStatus.sending,
+    );
+
+    await send(fileMessage);
+  }
+
   Future<void> sendImage({
     required String imagePath,
     required String receiverId,
   }) async {
+    final file = File(imagePath);
+
+    final fileName = file.uri.pathSegments.isNotEmpty
+        ? file.uri.pathSegments.last
+        : 'image.jpg';
+
+    final fileSize = await file.length();
+
     final imageMessage = MessageModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       senderId: "me",
       receiverId: receiverId,
       text: imagePath,
       type: MessageType.image,
+      fileName: fileName,
+      fileSize: fileSize,
+      mimeType: 'image/jpeg',
       timestamp: DateTime.now(),
       status: MessageStatus.sending,
     );

@@ -2,11 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/chat/chat_controller.dart';
 import '../../core/connection/chat_connection.dart';
 import '../../core/chat/chat_engine.dart';
+import '../../core/security/encryption_service.dart';
 import '../../core/network/network_manager.dart';
 import '../../models/message_model.dart';
 import '../../repositories/chat_repository.dart';
@@ -25,13 +28,19 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
+  final TextEditingController _searchController =
+      TextEditingController();
+
+  bool _searching = false;
   final ScrollController _scrollController = ScrollController();
   Timer? _typingTimer;
   Timer? _typingRefreshTimer;
 
   final ChatRepository _repository = ChatRepository(
     networkManager: NetworkManager(),
-    chatEngine: ChatEngine(),
+    chatEngine: ChatEngine(
+      encryptionService: EncryptionService(),
+    ),
   );
 
   late final ChatController _chatController =
@@ -54,6 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     _typingRefreshTimer?.cancel();
     _textController.dispose();
+    _searchController.dispose();
     _chatController.stop();
     _chatController.dispose();
     super.dispose();
@@ -128,6 +138,20 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
 
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles();
+
+    if (result == null || result.files.single.path == null) {
+      return;
+    }
+
+    await _chatController.sendFile(
+      filePath: result.files.single.path!,
+      receiverId: "peer",
+    );
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
 
@@ -137,8 +161,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (image == null) return;
 
+    final compressed = await FlutterImageCompress.compressAndGetFile(
+      image.path,
+      '${image.path}_compressed.jpg',
+      quality: 70,
+    );
+
+    if (compressed == null) return;
+
     await _chatController.sendImage(
-      imagePath: image.path,
+      imagePath: compressed.path,
       receiverId: "peer",
     );
   }
@@ -217,7 +249,48 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.connection.deviceName),
+        title: _searching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Search messages',
+                  border: InputBorder.none,
+                ),
+                onChanged: (value) {
+                  _chatController.setSearchQuery(value);
+                  setState(() {});
+                },
+              )
+            : Text(widget.connection.deviceName),
+        actions: [
+          if (_searching &&
+              _chatController.searchQuery.isNotEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  '${_chatController.filteredMessages.length}',
+                ),
+              ),
+            ),
+          IconButton(
+            icon: Icon(
+              _searching ? Icons.close : Icons.search,
+            ),
+            onPressed: () {
+              setState(() {
+                _searching = !_searching;
+              });
+
+              if (!_searching) {
+                _searchController.clear();
+                _chatController.clearSearch();
+                setState(() {});
+              }
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -226,17 +299,24 @@ class _ChatScreenState extends State<ChatScreen> {
               stream: _chatController.messagesStream,
               initialData: _chatController.messages,
               builder: (context, snapshot) {
-                final messages = snapshot.data ?? const <MessageModel>[];
+                final messages =
+                    _chatController.searchQuery.trim().isEmpty
+                        ? (snapshot.data ?? const <MessageModel>[])
+                        : _chatController.filteredMessages;
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   _scrollToBottom();
                 });
 
                 if (messages.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
-                      'No messages yet',
-                      style: TextStyle(color: Colors.grey),
+                      _chatController.searchQuery.isNotEmpty
+                          ? 'No messages found'
+                          : 'No messages yet',
+                      style: const TextStyle(
+                        color: Colors.grey,
+                      ),
                     ),
                   );
                 }
@@ -429,6 +509,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _pickFile,
+                    icon: const Icon(Icons.attach_file),
+                  ),
                   IconButton(
                     onPressed: _pickImage,
                     icon: const Icon(Icons.image),

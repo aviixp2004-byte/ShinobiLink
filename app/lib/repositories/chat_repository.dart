@@ -242,6 +242,46 @@ class ChatRepository {
     await networkManager.send(packet);
   }
 
+
+  Future<void> sendGroupMessage({
+    required MessageModel message,
+    required List<String> members,
+    required String groupId,
+  }) async {
+
+    _messages.add(message);
+    await _storage.saveMessage(message);
+    _notify();
+
+    for (final member in members) {
+
+      final packet = chatEngine.messageToPacket(
+        MessageModel(
+          id: message.id,
+          senderId: message.senderId,
+          receiverId: member,
+          text: message.text,
+          type: message.type,
+          timestamp: message.timestamp,
+          status: message.status,
+        ),
+      );
+
+      final groupPacket = PacketModel(
+        id: packet.id,
+        from: packet.from,
+        to: packet.to,
+        type: packet.type,
+        payload: packet.payload,
+        ttl: packet.ttl,
+        timestamp: packet.timestamp,
+        groupId: groupId,
+      );
+
+      await networkManager.send(groupPacket);
+    }
+  }
+
   Future<void> send(MessageModel message) async {
     _messages.add(message);
     await _storage.saveMessage(message);

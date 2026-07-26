@@ -9,6 +9,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('messages');
+  await Hive.openBox('groups');
   await StorageService.init();
 
   runApp(

@@ -9,6 +9,7 @@ class PacketModel {
   final int ttl;
   final DateTime timestamp;
   final String? replyTo;
+  final String? groupId;
 
   const PacketModel({
     required this.id,
@@ -19,6 +20,7 @@ class PacketModel {
     required this.ttl,
     required this.timestamp,
     this.replyTo,
+    this.groupId,
   });
 
   Map<String, dynamic> toJson() {
@@ -31,6 +33,7 @@ class PacketModel {
       'ttl': ttl,
       'timestamp': timestamp.toIso8601String(),
       'replyTo': replyTo,
+      'groupId': groupId,
     };
   }
 
@@ -42,6 +45,8 @@ class PacketModel {
 
   bool get isImage => type == PacketType.image;
 
+  bool get isFile => type == PacketType.file;
+
   factory PacketModel.fromJson(Map<String, dynamic> json) {
     return PacketModel(
       id: json['id'] as String,
@@ -52,6 +57,7 @@ class PacketModel {
       ttl: json['ttl'] as int,
       timestamp: DateTime.parse(json['timestamp'] as String),
       replyTo: json['replyTo'] as String?,
+      groupId: json['groupId'] as String?,
     );
   }
 }

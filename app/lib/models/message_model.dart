@@ -1,6 +1,7 @@
 enum MessageType {
   text,
   image,
+  file,
 }
 
 enum MessageStatus {
@@ -19,6 +20,9 @@ class MessageModel {
   final MessageType type;
   final DateTime timestamp;
   final String? replyTo;
+  final String? fileName;
+  final int? fileSize;
+  final String? mimeType;
   final MessageStatus status;
 
   const MessageModel({
@@ -29,6 +33,9 @@ class MessageModel {
     this.type = MessageType.text,
     required this.timestamp,
     this.replyTo,
+    this.fileName,
+    this.fileSize,
+    this.mimeType,
     required this.status,
   });
 
@@ -41,6 +48,9 @@ class MessageModel {
       'type': type.name,
       'timestamp': timestamp.toIso8601String(),
       'replyTo': replyTo,
+      'fileName': fileName,
+      'fileSize': fileSize,
+      'mimeType': mimeType,
       'status': status.name,
     };
   }
@@ -56,6 +66,9 @@ class MessageModel {
           : MessageType.text,
       timestamp: DateTime.parse(map['timestamp'] as String),
       replyTo: map['replyTo'] as String?,
+      fileName: map['fileName'] as String?,
+      fileSize: map['fileSize'] as int?,
+      mimeType: map['mimeType'] as String?,
       status: MessageStatus.values.byName(map['status'] as String),
     );
   }

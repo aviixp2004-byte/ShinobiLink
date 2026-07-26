@@ -1,15 +1,23 @@
 import '../../models/message_model.dart';
 import '../../models/packet_model.dart';
 import '../network/packet_type.dart';
+import '../security/encryption_service.dart';
 
 class ChatEngine {
+
+  ChatEngine({
+    required this.encryptionService,
+  });
+
+  final EncryptionService encryptionService;
+
   PacketModel messageToPacket(MessageModel message) {
     return PacketModel(
       id: message.id,
       from: message.senderId,
       to: message.receiverId,
       type: PacketType.message,
-      payload: message.text,
+      payload: encryptionService.encrypt(message.text),
       ttl: 5,
       timestamp: message.timestamp,
     );
@@ -20,7 +28,7 @@ class ChatEngine {
       id: packet.id,
       senderId: packet.from,
       receiverId: packet.to,
-      text: packet.payload,
+      text: encryptionService.decrypt(packet.payload),
       timestamp: packet.timestamp,
       status: MessageStatus.delivered,
     );

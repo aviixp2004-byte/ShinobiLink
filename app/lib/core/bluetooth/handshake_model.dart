@@ -6,6 +6,8 @@ class HandshakeModel {
   final String ip;
   final int port;
   final String role;
+  final String? encryptionKeyId;
+  final String? publicKey;
 
   const HandshakeModel({
     required this.deviceId,
@@ -13,6 +15,8 @@ class HandshakeModel {
     required this.ip,
     required this.port,
     required this.role,
+    this.encryptionKeyId,
+    this.publicKey,
   });
 
   Map<String, dynamic> toJson() => {
@@ -21,6 +25,8 @@ class HandshakeModel {
         'ip': ip,
         'port': port,
         'role': role,
+        'encryptionKeyId': encryptionKeyId,
+        'publicKey': publicKey,
       };
 
   factory HandshakeModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +36,10 @@ class HandshakeModel {
       ip: json['ip'] as String,
       port: json['port'] as int,
       role: json['role'] as String,
+      encryptionKeyId:
+          json['encryptionKeyId'] as String?,
+      publicKey:
+          json['publicKey'] as String?,
     );
   }
 
