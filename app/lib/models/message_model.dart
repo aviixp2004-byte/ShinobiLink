@@ -1,7 +1,13 @@
+enum MessageType {
+  text,
+  image,
+}
+
 enum MessageStatus {
   sending,
   sent,
   delivered,
+  read,
   failed,
 }
 
@@ -10,6 +16,7 @@ class MessageModel {
   final String senderId;
   final String receiverId;
   final String text;
+  final MessageType type;
   final DateTime timestamp;
   final String? replyTo;
   final MessageStatus status;
@@ -19,6 +26,7 @@ class MessageModel {
     required this.senderId,
     required this.receiverId,
     required this.text,
+    this.type = MessageType.text,
     required this.timestamp,
     this.replyTo,
     required this.status,
@@ -30,7 +38,9 @@ class MessageModel {
       'senderId': senderId,
       'receiverId': receiverId,
       'text': text,
+      'type': type.name,
       'timestamp': timestamp.toIso8601String(),
+      'replyTo': replyTo,
       'status': status.name,
     };
   }
@@ -41,7 +51,11 @@ class MessageModel {
       senderId: map['senderId'] as String,
       receiverId: map['receiverId'] as String,
       text: map['text'] as String,
+      type: map['type'] != null
+          ? MessageType.values.byName(map['type'] as String)
+          : MessageType.text,
       timestamp: DateTime.parse(map['timestamp'] as String),
+      replyTo: map['replyTo'] as String?,
       status: MessageStatus.values.byName(map['status'] as String),
     );
   }

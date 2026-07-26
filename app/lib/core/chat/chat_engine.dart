@@ -89,6 +89,20 @@ class ChatEngine {
     );
   }
 
+
+  PacketModel createReadAck(PacketModel message) {
+    return PacketModel(
+      id: '${message.id}_read',
+      from: message.to,
+      to: message.from,
+      type: PacketType.read,
+      payload: '',
+      ttl: 5,
+      timestamp: DateTime.now(),
+      replyTo: message.id,
+    );
+  }
+
   PacketModel createPong(PacketModel ping) {
     return PacketModel(
       id: DateTime.now().microsecondsSinceEpoch.toString(),

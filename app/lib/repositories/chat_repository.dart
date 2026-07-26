@@ -110,6 +110,11 @@ class ChatRepository {
       return;
     }
 
+    if (packet.type == PacketType.read) {
+      _handleRead(packet);
+      return;
+    }
+
     if (packet.isAck) {
       _handleAck(packet);
       return;
@@ -124,8 +129,36 @@ class ChatRepository {
     await _storage.saveMessage(message);
     _notify();
 
+    final readAck = chatEngine.createReadAck(packet);
+    await networkManager.send(readAck);
+
     final ack = chatEngine.createAck(packet);
     await networkManager.send(ack);
+  }
+
+
+  void _handleRead(PacketModel packet) {
+    if (packet.replyTo == null) return;
+
+    final index = _messages.indexWhere(
+      (m) => m.id == packet.replyTo,
+    );
+
+    if (index == -1) return;
+
+    final message = _messages[index];
+
+    _messages[index] = MessageModel(
+      id: message.id,
+      senderId: message.senderId,
+      receiverId: message.receiverId,
+      text: message.text,
+      timestamp: message.timestamp,
+      status: MessageStatus.read,
+    );
+
+    _storage.saveMessage(_messages[index]);
+    _notify();
   }
 
   void _handleAck(PacketModel packet) {
@@ -263,6 +296,8 @@ class ChatRepository {
 
   Future<void> deleteMessage(String id) async {
     _messages.removeWhere((m) => m.id == id);
+
+    await _storage.deleteMessage(id);
 
     _notify();
   }

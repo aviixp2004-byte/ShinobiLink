@@ -40,6 +40,8 @@ class PacketModel {
 
   bool get isMessage => type == PacketType.message;
 
+  bool get isImage => type == PacketType.image;
+
   factory PacketModel.fromJson(Map<String, dynamic> json) {
     return PacketModel(
       id: json['id'] as String,

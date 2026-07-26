@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/chat/chat_controller.dart';
@@ -86,6 +87,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
 
+
+  Color? _statusColor(MessageStatus status) {
+    switch (status) {
+      case MessageStatus.read:
+        return Colors.blue;
+      default:
+        return null;
+    }
+  }
+
   IconData _statusIcon(MessageStatus status) {
     switch (status) {
       case MessageStatus.sending:
@@ -93,6 +104,8 @@ class _ChatScreenState extends State<ChatScreen> {
       case MessageStatus.sent:
         return Icons.check;
       case MessageStatus.delivered:
+        return Icons.done_all;
+      case MessageStatus.read:
         return Icons.done_all;
       case MessageStatus.failed:
         return Icons.error_outline;
@@ -114,6 +127,22 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (image == null) return;
+
+    await _chatController.sendImage(
+      imagePath: image.path,
+      receiverId: "peer",
+    );
+  }
+
   Future<void> _copyMessage(String message) async {
     await Clipboard.setData(ClipboardData(text: message));
 
@@ -128,6 +157,37 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 
+
+
+  Future<void> _confirmDeleteMessage(MessageModel message) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete message?'),
+        content: const Text(
+          'This message will be removed.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (confirm == true) {
+      await _chatController.deleteMessage(message.id);
+    }
+  }
 
   void _startReply(MessageModel message) {
     _chatController.startReply(message);
@@ -204,6 +264,14 @@ class _ChatScreenState extends State<ChatScreen> {
                           value: 'copy',
                           child: Text('Copy'),
                         ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Delete'),
+                        ),
+                        PopupMenuItem(
+                          value: 'forward',
+                          child: Text('Forward'),
+                        ),
                       ],
                     );
 
@@ -213,6 +281,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       _startReply(message);
                     } else if (action == 'copy') {
                       _copyMessage(message.text);
+                    } else if (action == 'delete') {
+                      await _confirmDeleteMessage(message);
+                    } else if (action == 'forward') {
+                      await _chatController.forwardMessage(
+                        message,
+                        receiverId: "peer",
+                      );
                     }
                   },
                   child: Align(
@@ -272,6 +347,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               Icon(
                                 _statusIcon(message.status),
                                 size: 16,
+                                color: _statusColor(message.status),
                               ),
                             ]
                           ],
@@ -353,6 +429,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.image),
+                  ),
                   IconButton(
                     onPressed: _send,
                     icon: const Icon(Icons.send),

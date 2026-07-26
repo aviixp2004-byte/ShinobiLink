@@ -71,6 +71,41 @@ class ChatController {
     );
   }
 
+
+  Future<void> forwardMessage(
+    MessageModel message, {
+    required String receiverId,
+  }) async {
+    final forwarded = MessageModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      senderId: "me",
+      receiverId: receiverId,
+      text: message.text,
+      timestamp: DateTime.now(),
+      status: MessageStatus.sending,
+    );
+
+    await send(forwarded);
+  }
+
+
+  Future<void> sendImage({
+    required String imagePath,
+    required String receiverId,
+  }) async {
+    final imageMessage = MessageModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      senderId: "me",
+      receiverId: receiverId,
+      text: imagePath,
+      type: MessageType.image,
+      timestamp: DateTime.now(),
+      status: MessageStatus.sending,
+    );
+
+    await send(imageMessage);
+  }
+
   Future<void> send(MessageModel message) async {
     await _repository.send(message);
   }
