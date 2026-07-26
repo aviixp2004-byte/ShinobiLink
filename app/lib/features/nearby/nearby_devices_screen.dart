@@ -195,9 +195,12 @@ class _NearbyDevicesScreenState
 
                       context.push(
                         '/chat',
-                        extra: device.device.platformName.isEmpty
-                            ? 'Unknown Device'
-                            : device.device.platformName,
+                        extra: ChatConnection(
+                          deviceName: device.device.platformName.isEmpty
+                              ? 'Unknown Device'
+                              : device.device.platformName,
+                          connected: true,
+                        ),
                       );
                     } catch (e, stackTrace) {
                       AppLogger.error(
