@@ -12,6 +12,7 @@ class ChatController {
       _repository.messagesStream;
 
   Future<void> start() async {
+    _repository.loadMessages();
     await _repository.startListening();
   }
 
