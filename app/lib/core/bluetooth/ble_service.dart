@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../config/app_config.dart';
+
 class BleService {
   Stream<List<ScanResult>> scanResults() {
     return FlutterBluePlus.scanResults;
@@ -13,7 +15,7 @@ class BleService {
 
   Future<void> startScan() async {
     await FlutterBluePlus.startScan(
-      timeout: const Duration(seconds: 5),
+      timeout: AppConfig.discoveryInterval,
     );
   }
 
@@ -24,7 +26,7 @@ class BleService {
   Future<void> connect(BluetoothDevice device) async {
     await device.connect(
       license: License.nonprofit,
-      timeout: const Duration(seconds: 10),
+      timeout: AppConfig.handshakeTimeout,
     );
   }
 

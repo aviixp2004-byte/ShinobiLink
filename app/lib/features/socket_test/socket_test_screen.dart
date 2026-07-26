@@ -1,3 +1,4 @@
+import 'package:shinobilink/core/config/network_config.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -38,14 +39,14 @@ class _SocketTestScreenState extends State<SocketTestScreen> {
     _transport = SocketTransport(
       _service,
       mode: SocketMode.server,
-      port: 9000,
+      port: NetworkConfig.transferPort,
     );
 
     await _transport.start();
 
     _listen();
 
-    _add("Server started on port 9000");
+    _add("Server started on port NetworkConfig.transferPort");
   }
 
   Future<void> _connect() async {
@@ -53,7 +54,7 @@ class _SocketTestScreenState extends State<SocketTestScreen> {
       _service,
       mode: SocketMode.client,
       host: ipController.text.trim(),
-      port: 9000,
+      port: NetworkConfig.transferPort,
     );
 
     await _transport.start();

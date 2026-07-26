@@ -1,3 +1,4 @@
+import 'package:shinobilink/core/config/network_config.dart';
 import '../../models/packet_model.dart';
 import '../socket/socket_mode.dart';
 import '../socket/socket_service.dart';
@@ -11,7 +12,7 @@ class NetworkManager {
             SocketTransport(
               SocketService(),
               mode: SocketMode.server,
-              port: 9000,
+              port: NetworkConfig.transferPort,
             );
 
   SocketTransport _transport;
@@ -25,7 +26,7 @@ class NetworkManager {
   }
 
   Future<void> startServer({
-    int port = 9000,
+    int port = NetworkConfig.transferPort,
   }) async {
     await _transport.stop();
 
@@ -40,7 +41,7 @@ class NetworkManager {
 
   Future<void> connect({
     required String host,
-    int port = 9000,
+    int port = NetworkConfig.transferPort,
   }) async {
     await _transport.stop();
 

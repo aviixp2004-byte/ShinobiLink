@@ -6,6 +6,7 @@ import '../core/network/packet_type.dart';
 import '../models/message_model.dart';
 import '../models/packet_model.dart';
 import '../features/chat/services/chat_storage_service.dart';
+import '../core/config/app_config.dart';
 
 class ChatRepository {
   ChatRepository({
@@ -197,7 +198,7 @@ class ChatRepository {
     _heartbeatTimer?.cancel();
 
     _heartbeatTimer = Timer.periodic(
-      const Duration(seconds: 15),
+      AppConfig.heartbeatInterval,
       (_) async {
         final previous = _connectionHealthy;
         _connectionHealthy = !isConnectionStale;
@@ -282,14 +283,17 @@ class ChatRepository {
     }
   }
 
+  Future<void> _transmit(MessageModel message) async {
+    final packet = chatEngine.messageToPacket(message);
+    await networkManager.send(packet);
+  }
+
   Future<void> send(MessageModel message) async {
     _messages.add(message);
     await _storage.saveMessage(message);
     _notify();
 
-    final packet = chatEngine.messageToPacket(message);
-
-    await networkManager.send(packet);
+    await _transmit(message);
 
     final index = _messages.indexWhere((m) => m.id == message.id);
 
@@ -322,7 +326,7 @@ class ChatRepository {
     final pending = await pendingMessages();
 
     for (final message in pending) {
-      await send(message);
+      await _transmit(message);
     }
   }
 

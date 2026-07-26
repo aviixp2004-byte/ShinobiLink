@@ -1,5 +1,6 @@
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../exceptions/app_exception.dart';
 import 'ble_service.dart';
 import 'handshake_model.dart';
 import 'handshake_service.dart';
@@ -34,7 +35,7 @@ class BleHandshake {
       }
     }
 
-    throw Exception('Handshake characteristic not found');
+    throw HandshakeException('Handshake characteristic not found');
   }
 
   Future<void> send(

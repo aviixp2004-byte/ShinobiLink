@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/connection/chat_connection.dart';
+import '../../core/logging/app_logger.dart';
+import '../../core/exceptions/app_exception.dart';
 
 import '../../core/bluetooth/ble_service.dart';
 import '../../core/connection/connection_service.dart';
@@ -107,7 +109,7 @@ class _NearbyDevicesScreenState
                               );
 
                               if (connection == null) {
-                                throw Exception(
+                                throw WifiDirectException(
                                   'Wi-Fi Direct connection failed',
                                 );
                               }
@@ -129,15 +131,28 @@ class _NearbyDevicesScreenState
                                           connection_state.ConnectionState.connected,
                                 ),
                               );
-                            } catch (_) {
+                            } on WifiDirectException catch (e) {
+                              AppLogger.warning(e.message);
+
                               if (!context.mounted) return;
 
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(e.message),
+                                ),
+                              );
+                            } catch (e, stackTrace) {
+                              AppLogger.error(
+                                'Unexpected Wi-Fi Direct error',
+                                error: e,
+                                stackTrace: stackTrace,
+                              );
+
+                              if (!context.mounted) return;
+
+                              ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
-                                    'Connection failed',
-                                  ),
+                                  content: Text('Connection failed'),
                                 ),
                               );
                             } finally {
@@ -184,7 +199,13 @@ class _NearbyDevicesScreenState
                             ? 'Unknown Device'
                             : device.device.platformName,
                       );
-                    } catch (_) {
+                    } catch (e, stackTrace) {
+                      AppLogger.error(
+                        'Bluetooth connection failed',
+                        error: e,
+                        stackTrace: stackTrace,
+                      );
+
                       if (!context.mounted) return;
 
                       ScaffoldMessenger.of(context).showSnackBar(

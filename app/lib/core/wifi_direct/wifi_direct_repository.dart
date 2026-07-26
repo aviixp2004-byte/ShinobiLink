@@ -1,3 +1,4 @@
+import 'package:shinobilink/core/config/network_config.dart';
 import '../../core/platform/wifi_direct_channel.dart';
 import '../../models/wifi_peer.dart';
 import 'wifi_connection.dart';
@@ -49,7 +50,7 @@ class WifiDirectRepository {
       deviceName: "Wi-Fi Peer",
       deviceAddress: address,
       ip: info['ip'] ?? "",
-      port: 9000,
+      port: NetworkConfig.transferPort,
       isHost: info['isHost'] ?? false,
     );
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../models/packet_model.dart';
 import '../network/transport.dart';
+import '../exceptions/app_exception.dart';
 import '../network/transport_type.dart';
 import 'socket_mode.dart';
 import 'socket_service.dart';
@@ -32,7 +33,7 @@ class SocketTransport implements Transport {
 
       case SocketMode.client:
         if (host == null || host!.isEmpty) {
-          throw Exception('Host is required in client mode.');
+          throw ConfigurationException('Host is required in client mode.');
         }
 
         await _service.connect(host!, port);

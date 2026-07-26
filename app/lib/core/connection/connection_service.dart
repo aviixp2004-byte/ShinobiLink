@@ -9,7 +9,7 @@ import '../network/socket_handshake.dart';
 import '../security/encryption_service.dart';
 import '../security/key_pair_service.dart';
 import '../bluetooth/handshake_model.dart';
-
+import '../logging/app_logger.dart';
 
 class ConnectionService {
 
@@ -74,8 +74,15 @@ class ConnectionService {
       await handshake.send(handshakeModel);
 
       _state = ConnectionState.connected;
-    } catch (_) {
+    } catch (e, stackTrace) {
       _state = ConnectionState.failed;
+
+      AppLogger.error(
+        'Connection establishment failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
       rethrow;
     }
   }
