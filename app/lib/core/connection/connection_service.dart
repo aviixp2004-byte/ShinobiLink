@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:crypto/crypto.dart';
 
 import 'connection_coordinator.dart';
@@ -41,13 +42,25 @@ class ConnectionService {
 
   ConnectionState _state = ConnectionState.idle;
 
+  final StreamController<ConnectionState> _stateController =
+      StreamController<ConnectionState>.broadcast();
+
   ConnectionState get state => _state;
+
+  Stream<ConnectionState> get stateStream =>
+      _stateController.stream;
+
+  void _setState(ConnectionState state) {
+    if (_state == state) return;
+    _state = state;
+    _stateController.add(state);
+  }
 
   Future<void> connectWifi(
     WifiConnection connection,
   ) async {
     try {
-      _state = ConnectionState.connecting;
+      _setState(ConnectionState.connecting);
 
       await coordinator.establishWifiConnection(
         connection,
@@ -73,9 +86,9 @@ class ConnectionService {
 
       await handshake.send(handshakeModel);
 
-      _state = ConnectionState.connected;
+      _setState(ConnectionState.connected);
     } catch (e, stackTrace) {
-      _state = ConnectionState.failed;
+      _setState(ConnectionState.failed);
 
       AppLogger.error(
         'Connection establishment failed',
@@ -89,6 +102,10 @@ class ConnectionService {
 
   Future<void> disconnect() async {
     await networkManager.stop();
-    _state = ConnectionState.disconnected;
+    _setState(ConnectionState.disconnected);
+  }
+
+  Future<void> dispose() async {
+    await _stateController.close();
   }
 }

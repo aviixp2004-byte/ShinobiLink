@@ -18,5 +18,10 @@ class AppConfig {
   static const int maxRetryAttempts = 5;
   static const int maxPacketSize = 65536;
 
+  // Automatic reconnection
+  static const Duration initialReconnectDelay = Duration(seconds: 2);
+  static const Duration maxReconnectDelay = Duration(seconds: 32);
+  static const int maxReconnectAttempts = 5;
+
   static const int defaultPort = 40404;
 }
