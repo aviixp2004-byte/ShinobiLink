@@ -69,7 +69,7 @@ class SocketService {
       },
       onDone: () => _emit(TransportState.disconnected),
       onError: (_) => _emit(TransportState.error),
-    )
+    );
   }
 
   Future<void> send(String message) async {

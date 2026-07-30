@@ -2,6 +2,7 @@ import '../../models/message_model.dart';
 import '../../models/packet_model.dart';
 import '../network/packet_type.dart';
 import '../security/encryption_service.dart';
+import '../protocol/payload_codec.dart';
 
 class ChatEngine {
 
@@ -121,6 +122,60 @@ class ChatEngine {
       ttl: 1,
       timestamp: DateTime.now(),
       replyTo: ping.id,
+    );
+  }
+
+
+  PacketModel createFileMetadataPacket({
+    required String id,
+    required String from,
+    required String to,
+    required Map<String, dynamic> metadata,
+  }) {
+    return PacketModel(
+      id: id,
+      from: from,
+      to: to,
+      type: PacketType.fileMetadata,
+      payload: PayloadCodec.encode(metadata),
+      ttl: 5,
+      timestamp: DateTime.now(),
+    );
+  }
+
+  PacketModel createFileChunkPacket({
+    required String id,
+    required String from,
+    required String to,
+    required Map<String, dynamic> chunk,
+  }) {
+    return PacketModel(
+      id: id,
+      from: from,
+      to: to,
+      type: PacketType.fileChunk,
+      payload: PayloadCodec.encode(chunk),
+      ttl: 5,
+      timestamp: DateTime.now(),
+    );
+  }
+
+  PacketModel createFileCompletePacket({
+    required String id,
+    required String from,
+    required String to,
+    required String transferId,
+  }) {
+    return PacketModel(
+      id: id,
+      from: from,
+      to: to,
+      type: PacketType.fileComplete,
+      payload: PayloadCodec.encode({
+        "transferId": transferId,
+      }),
+      ttl: 5,
+      timestamp: DateTime.now(),
     );
   }
 
